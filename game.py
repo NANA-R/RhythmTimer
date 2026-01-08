@@ -109,7 +109,8 @@ def main(frameLimit, bpm, tempo, startCount):
                 90, 90, 90, 30, 60, 60, 90,
                 30, 90, 90, 30, 60, 30, 60,
                 60, 30, "YELLOW", 90, 90, 90,
-                90, 90, 60, 30, 60, 30, 90, 90, 90, 90]
+                90, 90, 60, 30, 60, 30, 90,
+                90, 90, 90, 30, 60, 30, 60,]
   notes = []
   changeColorTimings = []
   changeBPMTimings = []
@@ -129,6 +130,7 @@ def main(frameLimit, bpm, tempo, startCount):
   miss = 0
   hit = 0
   key = False
+  autoPlay = True
 
   try:
     pg.mixer.music.load("Polygons.mp3")
@@ -198,16 +200,26 @@ def main(frameLimit, bpm, tempo, startCount):
         pass
       if GameClock.draw(frame):
         counter += 1
-      for num in range(1, displayNotesCount):
-        if globals()[f"note{num + doneNotesCount}"].hitCheck(GameClock.playingAngle) and key:
-          doneNotesCount += 1
-          displayNotesCount -= 1
-          hit += 1
-          pg.mixer.Sound('pip.mp3').play()
-        elif globals()[f"note{num + doneNotesCount}"].update(GameClock.playingAngle, gameColor):
-          doneNotesCount += 1
-          displayNotesCount -= 1
-          miss += 1
+      if not autoPlay:
+        for num in range(1, displayNotesCount):
+          if globals()[f"note{num + doneNotesCount}"].hitCheck(GameClock.playingAngle) and key:
+            doneNotesCount += 1
+            displayNotesCount -= 1
+            hit += 1
+            pg.mixer.Sound('pip.mp3').play()
+          elif globals()[f"note{num + doneNotesCount}"].update(GameClock.playingAngle, gameColor):
+            doneNotesCount += 1
+            displayNotesCount -= 1
+            miss += 1
+      else:
+        for num in range(1, displayNotesCount):
+          if globals()[f"note{num + doneNotesCount}"].angle <= GameClock.playingAngle:
+            doneNotesCount += 1
+            displayNotesCount -= 1
+            hit += 1
+            pg.mixer.Sound('pip.mp3').play()
+          else:
+            globals()[f"note{num + doneNotesCount}"].draw(gameColor)
 
       frame += 1
       draw_texts(counter, GameClock.playingAngle, hit, miss, gameColor)
