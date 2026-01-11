@@ -3,13 +3,14 @@ import time
 import math
 from copy import copy
 
-def main(frameLimit, bpm, tempo, startCount):
+def main(frameLimit, bpm, tempo, startCount, fps):
 
   class Clock:
-    def __init__(self, color, bpm, screen, tempo=4):
+    def __init__(self, color, bpm, screen, delay=-200, tempo=4):
       self.color = color
       self.tempo = tempo
       self.bpm = bpm
+      self.delay = delay
       self.angle = 0
       self.tempAngle = 0
       self.angleCount = 0
@@ -22,7 +23,7 @@ def main(frameLimit, bpm, tempo, startCount):
       center = self.screen.get_rect().center
       scrW, scrH = self.screen.get_size()
       radius = min(scrW, scrH) // 3
-      speed = self.bpm / 60 * 6 / self.tempo  # 要改善
+      speed = self.bpm / fps * 6 / self.tempo  # 要改善
       pg.draw.circle(self.screen, pg.Color(self.color), center, radius)
       pg.draw.circle(self.screen, pg.Color("BLACK"), center, radius // 1.05)
       angle = (frame * speed) % 360 - 90
@@ -30,7 +31,7 @@ def main(frameLimit, bpm, tempo, startCount):
       end_y = center[1] + radius * 0.9 * math.sin(math.radians(angle))
       pg.draw.line(self.screen, pg.Color(
           self.color), center, (end_x, end_y), 3)
-      self.angle = int(angle)
+      self.angle = int(angle) + self.delay
       if self.playing:
         if self.tempAngle > self.angle:
           self.angleCount += 1
@@ -117,7 +118,10 @@ def main(frameLimit, bpm, tempo, startCount):
                 150, 30, 90, 90, 90, 90, 60, 30, 60, 30, 90, 90, "GRAY", 0.5,
                 90, 90, 90, 30, 30, 30, 90, 90, 90, 60, 30,
                 90, 90, 90, 90, 90, 90, 90, 60, 30, "WHITE", 2.0,
-                90, 90, 90]
+                90, 90, 90, 90, 90, 90, 90, 30, 30, 30, 90, 90, 90, 90, 90, 30, 30, 30,
+                60, 60, 60, 90, 90, 90, 90, 90, 90, 90, 30, 30, 30, 90, 90, 90, 90,
+                60, 30, 60, 30, 90, 90, "GREEN",
+                90, 30, 60, 60, 60, 60]
   notes = []
   changeColorTimings = []
   changeBPMTimings = []
@@ -131,7 +135,7 @@ def main(frameLimit, bpm, tempo, startCount):
     else:
       changeBPMTimings.append([tempAngle, content])
 
-  mag = 1
+  mag = 1.0
   notesCount = 0
   displayNotesCount = 0
   doneNotesCount = 0
@@ -173,7 +177,7 @@ def main(frameLimit, bpm, tempo, startCount):
 
       # 画面の更新とフレームレートの設定
       pg.display.update()
-      clock.tick(60)
+      clock.tick(fps)
 
     # 音楽の再生開始
     if not exit_flag:
@@ -185,10 +189,10 @@ def main(frameLimit, bpm, tempo, startCount):
         if event.type == pg.QUIT:
           exit_flag = True
           exit_code = '001'
-        if event.type == pg.KEYDOWN:
-          key = True
         if event.type == pg.KEYUP:
           key = False
+        if event.type == pg.KEYDOWN:
+          key = True
       screen.fill(pg.Color('BLACK'))
       for timing in changeColorTimings:
         if timing[0] < GameClock.playingAngle:
@@ -214,11 +218,13 @@ def main(frameLimit, bpm, tempo, startCount):
             doneNotesCount += 1
             displayNotesCount -= 1
             hit += 1
+            key = False
             pg.mixer.Sound('pip.mp3').play()
           elif globals()[f"note{num + doneNotesCount}"].update(GameClock.playingAngle, gameColor):
             doneNotesCount += 1
             displayNotesCount -= 1
             miss += 1
+
       else:
         for num in range(1, displayNotesCount):
           if globals()[f"note{num + doneNotesCount}"].angle <= GameClock.playingAngle:
@@ -232,7 +238,7 @@ def main(frameLimit, bpm, tempo, startCount):
       frame += 1
       draw_texts(counter, GameClock.playingAngle, hit, miss, gameColor)
       pg.display.update()
-      clock.tick(60 * mag)
+      clock.tick(fps * mag)
 
     pg.quit()
     return exit_code
@@ -242,5 +248,5 @@ def main(frameLimit, bpm, tempo, startCount):
 
 
 if __name__ == "__main__":
-  code = main(300, 130, 4, 8)
+  code = main(300, 130, 4, 8, 30)
   print(f'プログラムを「コード{code}」で終了しました。')
