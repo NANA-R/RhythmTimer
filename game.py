@@ -6,7 +6,7 @@ from copy import copy
 def main(frameLimit, bpm, tempo, startCount, fps):
 
   class Clock:
-    def __init__(self, color, bpm, screen, delay=-200, tempo=4):
+    def __init__(self, color, bpm, screen, delay=0, tempo=4):
       self.color = color
       self.tempo = tempo
       self.bpm = bpm
@@ -23,7 +23,7 @@ def main(frameLimit, bpm, tempo, startCount, fps):
       center = self.screen.get_rect().center
       scrW, scrH = self.screen.get_size()
       radius = min(scrW, scrH) // 3
-      speed = self.bpm / fps * 6 / self.tempo  # 要改善
+      speed = self.bpm / fps * 6 / self.tempo
       pg.draw.circle(self.screen, pg.Color(self.color), center, radius)
       pg.draw.circle(self.screen, pg.Color("BLACK"), center, radius // 1.05)
       angle = (frame * speed) % 360 - 90
@@ -39,6 +39,7 @@ def main(frameLimit, bpm, tempo, startCount, fps):
       return angle % 90 < speed
 
     def start(self):
+      time.sleep(self.delay)
       self.playing = True
 
   class Note:
@@ -181,8 +182,8 @@ def main(frameLimit, bpm, tempo, startCount, fps):
 
     # 音楽の再生開始
     if not exit_flag:
-      GameClock.start()
       pg.mixer.music.play()
+      GameClock.start()
 
     while counter < frameLimit and not exit_flag:
       for event in pg.event.get():
