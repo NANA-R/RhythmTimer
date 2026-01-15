@@ -3,10 +3,10 @@ import time
 import math
 from copy import copy
 
-def main(frameLimit, bpm, tempo, startCount, fps):
+def main(frameLimit, bpm, tempo, startCount, fps, delay):
 
   class Clock:
-    def __init__(self, color, bpm, screen, delay=0, tempo=4):
+    def __init__(self, color, bpm, screen, delay, tempo):
       self.color = color
       self.tempo = tempo
       self.bpm = bpm
@@ -39,7 +39,6 @@ def main(frameLimit, bpm, tempo, startCount, fps):
       return angle % 90 < speed
 
     def start(self):
-      time.sleep(self.delay)
       self.playing = True
 
   class Note:
@@ -151,7 +150,7 @@ def main(frameLimit, bpm, tempo, startCount, fps):
     print(f'音声ファイルの読み込みに失敗しました: {e}')
     exit_flag = True
     exit_code = '101'
-  GameClock = Clock(gameColor, bpm, screen, tempo)
+  GameClock = Clock(gameColor, bpm, screen, 0, tempo)
   for num in range(len(notes)):
     globals()[f"note{num + 1}"] = Note(gameColor, notes[num], screen)
 
@@ -182,8 +181,14 @@ def main(frameLimit, bpm, tempo, startCount, fps):
 
     # 音楽の再生開始
     if not exit_flag:
-      pg.mixer.music.play()
-      GameClock.start()
+      if GameClock.delay >= 0:
+        pg.mixer.music.play()
+        time.sleep(GameClock.delay)
+        GameClock.start()
+      else:
+        GameClock.start()
+        time.sleep(GameClock.delay * -1)
+        pg.mixer.music.play()
 
     while counter < frameLimit and not exit_flag:
       for event in pg.event.get():
@@ -249,5 +254,5 @@ def main(frameLimit, bpm, tempo, startCount, fps):
 
 
 if __name__ == "__main__":
-  code = main(300, 130, 4, 8, 30)
+  code = main(300, 130, 4, 8, 30, 0)
   print(f'プログラムを「コード{code}」で終了しました。')
